@@ -1,0 +1,68 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract GreenEnergyToken is ERC1155, Ownable {
+    // Mapping to store energy metadata (e.g., energy source, production timestamp)
+    mapping(uint256 => string) public energyMetadata;
+    
+    // Event for energy token minting
+    event EnergyMinted(address indexed operator, address indexed to, uint256 id, uint256 amount, string metadata);
+    
+    constructor(string memory uri) ERC1155(uri) Ownable(msg.sender) {
+        // Set base URI for token metadata (e.g., IPFS or HTTPS URL)
+        // Example: "https://ipfs.io/ipfs/{id}.json"
+    }
+    
+    // Mint fungible energy tokens (e.g., kWh of solar energy)
+    function mintEnergy(
+        address to,
+        uint256 id,
+        uint256 amount,
+        string memory metadata,
+        bytes memory data
+    ) public onlyOwner {
+        _mint(to, id, amount, data);
+        energyMetadata[id] = metadata;
+        emit EnergyMinted(msg.sender, to, id, amount, metadata);
+    }
+    
+    // Mint non-fungible energy asset (e.g., unique solar panel)
+    function mintEnergyNFT(
+        address to,
+        uint256 id,
+        string memory metadata,
+        bytes memory data
+    ) public onlyOwner {
+        _mint(to, id, 1, data); // NFT: amount is always 1
+        energyMetadata[id] = metadata;
+        emit EnergyMinted(msg.sender, to, id, 1, metadata);
+    }
+    
+    // Batch mint multiple token types
+    function mintBatchEnergy(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        string[] memory metadatas,
+        bytes memory data
+    ) public onlyOwner {
+        require(ids.length == metadatas.length, "IDs and metadata length mismatch");
+        _mintBatch(to, ids, amounts, data);
+        for (uint256 i = 0; i < ids.length; i++) {
+            energyMetadata[ids[i]] = metadatas[i];
+        }
+    }
+    
+    // Function to link energy production (e.g., from oracles)
+    function updateEnergyMetadata(uint256 id, string memory metadata) public onlyOwner {
+        energyMetadata[id] = metadata;
+    }
+    
+    // Override to ensure compliance with ERC-1155
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+}
