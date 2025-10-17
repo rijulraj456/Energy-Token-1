@@ -18,7 +18,7 @@ interface IERC20 {
 }
 
 
-contract energy is IERC20 {
+contract energy456 is IERC20 {
 
     string public constant name = "energy";
     string public constant symbol = "energy";
